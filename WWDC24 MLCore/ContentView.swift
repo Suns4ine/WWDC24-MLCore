@@ -6,89 +6,77 @@
 //
 
 import SwiftUI
-import Translation
 
 struct ContentView: View {
 
-	@StateObject var translationService = TranslationService()
+	@State var selectedSegment = 0
+
+	var sections = [Section(view: AnyView(Translation.View()),
+							image: Image(systemName: "translate"),
+							background: .indigo,
+							colors: [.purple, .blue]),
+					Section(view: AnyView(WritingTools.View()),
+							image: Image(systemName: "pencil"),
+							background: .red,
+							colors: [.red, .orange, .yellow]),
+					Section(view: AnyView(ImagePlayground.View()),
+							image: Image(systemName: "photo"),
+							background: .green,
+							colors: [.green, .mint, .teal])]
 
 	var body: some View {
-		NavigationStack {
-			makeTranslationView()
-		}
-	}
-
-	private func makeTranslationView() -> some View {
 		VStack {
-			Text("Translation")
+			Text("WWDC24 ML Core")
+				.foregroundColor(.black)
 				.padding(.vertical)
-			Picker("Выбор", selection: $translationService.selectedSegment) {
-				ForEach(0..<translationService.languages.count, id: \.self) { index in
-					Text(translationService.getNames(index))
-				}
-			}
-			.pickerStyle(SegmentedPickerStyle())
-			.padding(.horizontal)
-			.padding(.bottom)
 
-			Text(translationService.text)
-				.font(.title3)
-				.multilineTextAlignment(.center)
-			Spacer()
+			makeSegmentedPicker()
+			makeSelectedSegmentView()
 		}
-
-		.toolbar {
-			Button {
-				self.translationService.performTranslation()
-			} label: {
-				Image(systemName: "translate")
-			}
-		}
-
-		.translationTask(translationService.configuration) { session in
-			do {
-				try await session.prepareTranslation()
-
-				let response = try await session.translate(translationService.text)
-				translationService.text = response.targetText
-				translationService.lastLanguage = translationService.currentLanguage
-			} catch let error {
-				print(error)
-			}
-		}
+		.background(sections[selectedSegment].background)
 	}
 }
+
+extension ContentView {
+	func makeSegmentedPicker() -> some View {
+		Picker("Выбор", selection: $selectedSegment) {
+			ForEach(0..<sections.count, id: \.self) { index in
+				sections[index].image
+//					.renderingMode(.template)
+//					.foregroundColor(.black)
+//					.colorMultiply(.black)
+			}
+		}
+		.pickerStyle(SegmentedPickerStyle())
+		.overlay(
+			RoundedRectangle(cornerRadius: 8)
+				.stroke(Color.black, lineWidth: 1)
+		)
+		.colorMultiply(.black)
+		.padding([.horizontal, .bottom])
+	}
+
+	func makeSelectedSegmentView() -> some View {
+		ZStack {
+			RoundedRectangle(cornerRadius: 12)
+				.fill(LinearGradient(
+					gradient: Gradient(colors: sections[selectedSegment].colors),
+					startPoint: .topLeading,
+					endPoint: .bottomTrailing
+				))
+				.overlay(
+					RoundedRectangle(cornerRadius: 12)
+						.stroke(Color.black, lineWidth: 3)
+				)
+
+			sections[selectedSegment].view
+		}
+		.frame(maxWidth: .infinity, maxHeight: .infinity)
+		.padding()
+	}
+}
+
 
 #Preview {
-    ContentView()
-}
-
-final class TranslationService: ObservableObject {
-	@Published var text = "Where's the money, Lebowski?"
-	@Published var configuration: TranslationSession.Configuration?
-	@Published var lastLanguage: Locale.LanguageCode = .english
-
-	var selectedSegment = 0
-	var currentLanguage: Locale.LanguageCode {
-		languages[selectedSegment]
-	}
-
-	let languages: [Locale.LanguageCode] = [.russian, .english, .french]
-	let langugeNames: [Locale.LanguageCode: String] =
-	[
-		.russian: "Russian",
-		.english: "English",
-		.french: "French"
-	]
-
-	func getNames(_ index: Int) -> String {
-		langugeNames[languages[index]] ?? "Unknow"
-	}
-
-	func performTranslation() {
-		configuration = TranslationSession.Configuration(
-			source: Locale.Language(languageCode: lastLanguage),
-			target: Locale.Language(languageCode: currentLanguage)
-		)
-	}
+	ContentView()
 }
