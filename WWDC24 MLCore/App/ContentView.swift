@@ -35,6 +35,14 @@ struct ContentView: View {
 		}
 		.background(sections[selectedSegment].background)
 	}
+
+	init() {
+		UISegmentedControl.appearance().selectedSegmentTintColor = UIColor.systemBlue
+		UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white],
+															   for: .selected)
+		UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.black],
+															   for: .normal)
+	}
 }
 
 extension ContentView {
@@ -42,9 +50,6 @@ extension ContentView {
 		Picker("Выбор", selection: $selectedSegment) {
 			ForEach(0..<sections.count, id: \.self) { index in
 				sections[index].image
-//					.renderingMode(.template)
-//					.foregroundColor(.black)
-//					.colorMultiply(.black)
 			}
 		}
 		.pickerStyle(SegmentedPickerStyle())
@@ -52,7 +57,6 @@ extension ContentView {
 			RoundedRectangle(cornerRadius: 8)
 				.stroke(Color.black, lineWidth: 1)
 		)
-		.colorMultiply(.black)
 		.padding([.horizontal, .bottom])
 	}
 

@@ -54,8 +54,6 @@ extension Translation.View {
 			RoundedRectangle(cornerRadius: 8)
 				.stroke(Color.black, lineWidth: 1)
 		)
-		.tint(.blue)
-		.colorMultiply(.black)
 		.padding()
 	}
 
